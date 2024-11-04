@@ -13,16 +13,12 @@ RUN dotnet publish "$APP/$APP.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS processor
 # copy shared libs from dotnet 6 sdk
 COPY --from=mcr.microsoft.com/dotnet/sdk:6.0 /usr/share/dotnet/sdk /usr/share/dotnet/sdk
-ARG APPNAME
-ENV APP=$APPNAME
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "${APP}.dll"]
+ENTRYPOINT ["dotnet", "HangfireJobProcessor.dll"]
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS api
-ARG APPNAME
-ENV APP=$APPNAME
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "${APP}.dll"]
+ENTRYPOINT ["dotnet", "JobEnqueuerService.dll"]
 EXPOSE 8080
