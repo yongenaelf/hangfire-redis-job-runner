@@ -20,8 +20,9 @@ public class Build
 
         try
         {
-            // build the project
-            var projectFile = Directory.GetFiles(tempFolder, "*.csproj", SearchOption.AllDirectories).FirstOrDefault();
+            // build the project, the first csproj file that is not Tests.csproj
+            var projectFile = Directory.GetFiles(tempFolder, "*.csproj", SearchOption.AllDirectories)
+                .FirstOrDefault(x => !x.Contains("Tests.csproj"));
 
             if (projectFile == null)
             {
