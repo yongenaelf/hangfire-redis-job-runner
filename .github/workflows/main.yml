@@ -60,7 +60,7 @@ jobs:
           context: .
           push: true
           target: ${{ matrix.target }}
-          args: --build-arg APPNAME=${{ matrix.app }}
+          build-args: APPNAME=${{ matrix.app }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       
