@@ -31,7 +31,8 @@ public class Build
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"build {projectFile} -p:RunAnalyzers=false",
+                Arguments = $"build -p:RunAnalyzers=false",
+                WorkingDirectory = Path.GetDirectoryName(projectFile),
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
