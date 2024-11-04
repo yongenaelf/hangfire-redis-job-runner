@@ -60,8 +60,6 @@ public class Build
 
             var dllContent = Convert.ToBase64String(File.ReadAllBytes(dllFile));
 
-            // log the content
-            Console.WriteLine(dllContent);
             return dllContent;
         }
         catch (Exception ex)

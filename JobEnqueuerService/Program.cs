@@ -23,6 +23,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 // Use Hangfire Dashboard for managing jobs
 app.UseHangfireDashboard();
 
@@ -44,6 +46,7 @@ app.MapPost("/build", (IBackgroundJobClient backgroundJobs, IFormFile file) =>
 
         // Enqueue the job
         var jobId = backgroundJobs.Enqueue<Build>((x) => x.DotnetBuild(base64));
+        logger.LogInformation($"Job enqueued with ID: {jobId}");
 
         string? result = null;
         var stopwatch = new Stopwatch();
@@ -68,7 +71,7 @@ app.MapPost("/build", (IBackgroundJobClient backgroundJobs, IFormFile file) =>
         }
 
         stopwatch.Stop();
-        Console.WriteLine($"Job completed in {stopwatch.ElapsedMilliseconds}ms");
+        logger.LogInformation($"Job ID {jobId} completed in {stopwatch.ElapsedMilliseconds}ms");
 
         return result;
     }
