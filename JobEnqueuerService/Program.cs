@@ -55,15 +55,16 @@ app.MapPost("/build", (IBackgroundJobClient backgroundJobs, IFormFile file) =>
             IMonitoringApi jobMonitoringApi = JobStorage.Current.GetMonitoringApi();
             JobDetailsDto job = jobMonitoringApi.JobDetails(jobId);
 
-            // check if the job is completed
-            if (job.History[0].StateName != "Succeeded")
+            // search job history for "Succeeded" state
+            if (job.History.Any(x => x.StateName == "Succeeded"))
             {
-                // wait for the job to complete
-                Thread.Sleep(1000);
-                continue;
+                result = job.History.First(x => x.StateName == "Succeeded").Data["Result"];
             }
-
-            result = job.History[0].Data["Result"];
+            else
+            {
+                // wait for 1 second before checking again
+                Thread.Sleep(1000);
+            }
         }
 
         stopwatch.Stop();
