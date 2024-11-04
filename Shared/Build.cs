@@ -5,7 +5,7 @@ namespace Shared;
 
 public class Build
 {
-    public void DotnetBuild(string file)
+    public string DotnetBuild(string file)
     {
         // convert the base64 to bytes
         var fileBytes = Convert.FromBase64String(file);
@@ -18,28 +18,59 @@ public class Build
 
         ZipFile.ExtractToDirectory(tempFile, tempFolder);
 
-        // build the project
-        var projectFolder = Directory.GetDirectories(tempFolder).First();
-        var projectFile = Directory.GetFiles(projectFolder, "*.csproj").First();
-
         try
         {
-            var process = Process.Start("dotnet", $"build {projectFile}");
+            // build the project
+            var projectFile = Directory.GetFiles(tempFolder, "*.csproj", SearchOption.AllDirectories).FirstOrDefault();
+
+            if (projectFile == null)
+            {
+                throw new Exception("No project file found.");
+            }
+
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"build {projectFile} -p:RunAnalyzers=false",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var process = Process.Start(processStartInfo);
+            if (process == null)
+            {
+                throw new Exception("Failed to start the build process.");
+            }
             process.WaitForExit();
 
+            // collect the standard output for returning later
+            var output = process.StandardOutput.ReadToEnd();
+
             // get the dll content as base64
-            var dllFile = Directory.GetFiles(projectFolder, "*.dll.patched").First();
+            var dllFile = Directory.GetFiles(tempFolder, "*.dll.patched").FirstOrDefault();
+
+            // check if the dll exists
+            if (!File.Exists(dllFile))
+            {
+                throw new Exception(output);
+            }
+
             var dllContent = Convert.ToBase64String(File.ReadAllBytes(dllFile));
 
             // log the content
             Console.WriteLine(dllContent);
+            return dllContent;
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            return ex.Message;
         }
-
-        // cleanup
-        Directory.Delete(tempFolder, true);
+        finally
+        {
+            // cleanup
+            Directory.Delete(tempFolder, true);
+        }
     }
 }

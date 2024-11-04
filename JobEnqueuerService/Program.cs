@@ -1,5 +1,8 @@
+using System.Diagnostics;
 using Hangfire;
 using Hangfire.Redis.StackExchange;
+using Hangfire.Storage;
+using Hangfire.Storage.Monitoring;
 using Shared;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,12 +43,34 @@ app.MapPost("/build", (IBackgroundJobClient backgroundJobs, IFormFile file) =>
         var base64 = Convert.ToBase64String(fileBytes);
 
         // Enqueue the job
-        backgroundJobs.Enqueue<Build>((x) => x.DotnetBuild(base64));
+        var jobId = backgroundJobs.Enqueue<Build>((x) => x.DotnetBuild(base64));
+
+        string? result = null;
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        while (result == null)
+        {
+            // get job return value
+            IMonitoringApi jobMonitoringApi = JobStorage.Current.GetMonitoringApi();
+            JobDetailsDto job = jobMonitoringApi.JobDetails(jobId);
+
+            // check if the job is completed
+            if (job.History[0].StateName != "Succeeded")
+            {
+                // wait for the job to complete
+                Thread.Sleep(1000);
+                continue;
+            }
+
+            result = job.History[0].Data["Result"];
+        }
+
+        stopwatch.Stop();
+        Console.WriteLine($"Job completed in {stopwatch.ElapsedMilliseconds}ms");
+
+        return result;
     }
-
-
-
-    return Results.Ok("Job has been enqueued!");
 }).DisableAntiforgery();
 
 app.Run();
