@@ -11,7 +11,11 @@ builder.Services.AddHangfire(configuration =>
     configuration.UseRedisStorage(redisConnectionString));
 
 // Add the Hangfire server
-builder.Services.AddHangfireServer(options => options.WorkerCount = 1);
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 1;
+    options.SchedulePollingInterval = TimeSpan.FromSeconds(1);
+});
 
 var app = builder.Build();
 
