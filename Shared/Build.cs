@@ -48,7 +48,7 @@ public class Build
             var output = process.StandardOutput.ReadToEnd();
 
             // get the dll content as base64
-            var dllFile = Directory.GetFiles(tempFolder, "*.dll.patched").FirstOrDefault();
+            var dllFile = Directory.GetFiles(tempFolder, "*.dll.patched", SearchOption.AllDirectories).FirstOrDefault();
 
             // check if the dll exists
             if (!File.Exists(dllFile))
