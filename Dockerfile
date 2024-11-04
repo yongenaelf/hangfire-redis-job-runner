@@ -12,7 +12,7 @@ RUN dotnet publish "$APP/$APP.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS processor
 # copy shared libs from dotnet 8 sdk
-COPY --from=mcr.microsoft.com/dotnet/sdk:8.0 /usr/share/dotnet/sdk /usr/share/dotnet/sdk
+COPY --from=mcr.microsoft.com/dotnet/sdk:8.0 /usr/share/dotnet /usr/share/dotnet
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "HangfireJobProcessor.dll"]
